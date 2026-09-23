@@ -126,12 +126,13 @@ export const NauticalMap: React.FC = () => {
     }
   }, [isFullscreen, wheelZoom]);
 
-  // Initialize Map
+  // Initialize Map and attach active basemap
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
     if (mapRef.current) {
       mapRef.current.remove();
+      mapRef.current = null;
     }
 
     const map = L.map(mapContainerRef.current, {
@@ -139,29 +140,11 @@ export const NauticalMap: React.FC = () => {
       zoom: activeIncident.zoom,
       zoomControl: false,
       attributionControl: false,
-      scrollWheelZoom: false,
+      scrollWheelZoom: isFullscreen || wheelZoom,
     });
 
-    layersGroupRef.current = L.layerGroup().addTo(map);
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [activeIncident.id]);
-
-  // Update Basemap Layer when basemap or theme changes (100% Watermark Free)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Remove existing tile layer group
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-
-    const currentBase = basemapTiles[basemap] || basemapTiles.dark;
+    // Create Tile Layer Group
+    const currentBase = basemapTiles[basemap] || basemapTiles.satellite || basemapTiles.dark;
     const tileGroup = L.layerGroup();
 
     // Add Base Layer
@@ -180,6 +163,53 @@ export const NauticalMap: React.FC = () => {
 
     tileGroup.addTo(map);
     tileLayerRef.current = tileGroup;
+
+    // Vector Layer Group
+    layersGroupRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
+
+    // Ensure map tiles calculate correct pixel bounding box
+    const resizeTimer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
+    return () => {
+      clearTimeout(resizeTimer);
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [activeIncident.id]);
+
+  // Update Basemap Layer when basemap or theme changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    // Remove existing tile layer group
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const currentBase = basemapTiles[basemap] || basemapTiles.satellite || basemapTiles.dark;
+    const tileGroup = L.layerGroup();
+
+    // Add Base Layer
+    L.tileLayer(currentBase.base, {
+      maxZoom: currentBase.maxZoom,
+      subdomains: 'abc',
+    }).addTo(tileGroup);
+
+    // Add Reference / Labels / Seamarks Layer if present
+    if (currentBase.labels) {
+      L.tileLayer(currentBase.labels, {
+        maxZoom: currentBase.maxZoom,
+        subdomains: 'abc',
+      }).addTo(tileGroup);
+    }
+
+    tileGroup.addTo(map);
+    tileLayerRef.current = tileGroup;
+    map.invalidateSize();
   }, [basemap, theme]);
 
   // Render Vector Layers, Overlays, and Active Satellite Sensor Swaths
@@ -195,8 +225,8 @@ export const NauticalMap: React.FC = () => {
 
     // 1. Dynamic Satellite Sensor Swath & Footprint Layer
     if (showSarFootprint) {
-      if (selectedSatellite.includes('Sentinel-1')) {
-        // Sentinel-1 SAR IW Swath (C-Band Radar)
+      if (selectedSatellite.includes('EOS-04') || selectedSatellite.includes('RISAT') || selectedSatellite.includes('Sentinel-1')) {
+        // ISRO EOS-04 / Sentinel-1 SAR IW Swath (C-Band Dual-Pol Radar)
         const padLat = 0.24;
         const padLon = 0.38;
         const sarBounds: L.LatLngExpression[] = [
@@ -211,23 +241,23 @@ export const NauticalMap: React.FC = () => {
           weight: 2,
           dashArray: '6, 4',
           fillColor: '#0891b2',
-          fillOpacity: 0.08,
+          fillOpacity: 0.10,
         })
-          .bindTooltip('🛰️ Sentinel-1 SAR IW Swath (VV+VH Dual-Pol • 10m Res • 250km Swath)', {
+          .bindTooltip(`🛰️ ${selectedSatellite.includes('EOS-04') ? 'ISRO EOS-04 (RISAT-1A SAR)' : 'Sentinel-1 SAR IW'} (VV+VH Dual-Pol • 10m Res • 250km Swath)`, {
             permanent: false,
             direction: 'top',
           })
           .addTo(group);
 
-        // Radar beam grid lines
+        // Radar beam polarization grid lines
         L.polyline([[cLat + padLat, cLon - padLon], [cLat - padLat, cLon + padLon]], {
           color: '#06b6d4',
           weight: 1,
           dashArray: '2, 6',
           opacity: 0.4
         }).addTo(group);
-      } else if (selectedSatellite.includes('Sentinel-2')) {
-        // Sentinel-2 MSI Optical Sun-Glint & NDWI Swath
+      } else if (selectedSatellite.includes('Oceansat') || selectedSatellite.includes('Sentinel-2')) {
+        // ISRO Oceansat-3 / Sentinel-2 MSI Optical Swath
         const padLat = 0.18;
         const padLon = 0.28;
         const opticalBounds: L.LatLngExpression[] = [
@@ -244,7 +274,7 @@ export const NauticalMap: React.FC = () => {
           fillColor: '#059669',
           fillOpacity: 0.12,
         })
-          .bindTooltip('☀️ Sentinel-2 MSI Optical (Sun-Glint Band 8A + NDWI Water Index • 10m)', {
+          .bindTooltip(`☀️ ${selectedSatellite.includes('Oceansat') ? 'ISRO Oceansat-3 (OCM-3)' : 'Sentinel-2 MSI Optical'} (Sun-Glint Band 8A + NDWI Water Index • 10m)`, {
             permanent: false,
             direction: 'top',
           })
@@ -296,7 +326,7 @@ export const NauticalMap: React.FC = () => {
           })
           .addTo(group);
       } else {
-        // TerraSAR-X Spotlight
+        // High-Precision SAR Spotlight Swath
         const padLat = 0.12;
         const padLon = 0.18;
         const tsxBounds: L.LatLngExpression[] = [
@@ -313,7 +343,7 @@ export const NauticalMap: React.FC = () => {
           fillColor: '#db2777',
           fillOpacity: 0.12,
         })
-          .bindTooltip('⚡ TerraSAR-X Spotlight (X-Band High Precision • 1m Res)', {
+          .bindTooltip(`⚡ ${selectedSatellite} (High Precision Polarimetric Radar)`, {
             permanent: false,
             direction: 'top',
           })
