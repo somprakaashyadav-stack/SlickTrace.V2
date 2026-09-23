@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # 1. Spatial Database: PostgreSQL + PostGIS Spatial Engine
+  spatial-db:
+    image: postgis/postgis:15-3.3
+    container_name: slicktrace-postgis
+    environment:
+      POSTGRES_DB: slicktrace_gis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: slicktrace_secure_pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Core Analytics Engine: FastAPI + PyTorch (U-Net / DeepLabV3+) + OpenDrift
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slicktrace-backend
+    environment:
+      - DATABASE_PATH=/app/data/slicktrace.duckdb
+      - POSTGRES_URL=postgresql://postgres:slicktrace_secure_pwd@spatial-db:5432/slicktrace_gis
+      - CORS_ORIGINS=*
+      - HOST=0.0.0.0
+      - PORT=8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+    depends_on:
+      spatial-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 3. Interactive Mapping UI: React 19 + Vite + Leaflet / Mapbox
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: slicktrace-frontend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgis_data:
