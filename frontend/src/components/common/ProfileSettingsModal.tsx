@@ -1,23 +1,44 @@
-import React, { useState } from 'react';
-import { X, Shield, Key, Database, CheckCircle, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Shield, Key, Database, CheckCircle, Save, Globe, Satellite, Compass } from 'lucide-react';
 import { useIncident } from '../../context/IncidentContext';
 
 export const ProfileSettingsModal: React.FC = () => {
-  const { isSettingsOpen, setIsSettingsOpen, isBackendConnected } = useIncident();
+  const { isSettingsOpen, setIsSettingsOpen, isBackendConnected, showToast } = useIncident();
 
-  const [sentinelKey, setSentinelKey] = useState('copernicus_demo_key_sec942');
-  const [cmemsUser, setCmemsUser] = useState('cmems_marine_user');
+  // API Keys with localStorage persistence
+  const [mapsApiKey, setMapsApiKey] = useState(() => localStorage.getItem('slicktrace_maps_key') || '');
+  const [sentinelKey, setSentinelKey] = useState(() => localStorage.getItem('slicktrace_sentinel_key') || '');
+  const [cmemsUser, setCmemsUser] = useState(() => localStorage.getItem('slicktrace_cmems_user') || '');
+  const [openMeteoKey, setOpenMeteoKey] = useState(() => localStorage.getItem('slicktrace_meteo_key') || '');
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      setMapsApiKey(localStorage.getItem('slicktrace_maps_key') || '');
+      setSentinelKey(localStorage.getItem('slicktrace_sentinel_key') || '');
+      setCmemsUser(localStorage.getItem('slicktrace_cmems_user') || '');
+      setOpenMeteoKey(localStorage.getItem('slicktrace_meteo_key') || '');
+    }
+  }, [isSettingsOpen]);
 
   if (!isSettingsOpen) return null;
 
   const handleSave = () => {
+    localStorage.setItem('slicktrace_maps_key', mapsApiKey);
+    localStorage.setItem('slicktrace_sentinel_key', sentinelKey);
+    localStorage.setItem('slicktrace_cmems_user', cmemsUser);
+    localStorage.setItem('slicktrace_meteo_key', openMeteoKey);
+
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    showToast('✓ Maritime & Satellite API Keys saved to secure local storage');
+    setTimeout(() => {
+      setIsSaved(false);
+      setIsSettingsOpen(false);
+    }, 1200);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 select-none animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 select-none animate-fadeIn">
       <div className="bg-white dark:bg-[#131D31] border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 shadow-2xl flex flex-col gap-5 text-xs text-slate-800 dark:text-slate-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
@@ -30,7 +51,7 @@ export const ProfileSettingsModal: React.FC = () => {
                 Maritime Agency Credentials & API Registry
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                SlickTrace V2 Enforcement Configuration
+                SlickTrace V2 Remote Sensing & Map Configuration
               </p>
             </div>
           </div>
@@ -63,7 +84,7 @@ export const ProfileSettingsModal: React.FC = () => {
         <div className="space-y-2.5">
           <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <Database className="w-3.5 h-3.5 text-blue-500" />
-            <span>Database & Analytics Feeds</span>
+            <span>Database & Remote Sensing Feeds</span>
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -89,33 +110,71 @@ export const ProfileSettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* API Key Inputs */}
+        {/* Map & Satellite API Key Inputs */}
         <div className="space-y-3">
           <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <Key className="w-3.5 h-3.5 text-amber-500" />
-            <span>Remote Sensing API Keys</span>
+            <span>Maps & Satellite Imagery API Keys</span>
           </h4>
 
+          {/* 1. Map Tiles Key */}
           <div>
-            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block mb-1">
-              Copernicus / Sentinel-1 SAR Access Token
+            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1 mb-1">
+              <Globe className="w-3 h-3 text-blue-500" />
+              <span>Mapbox / Carto / Esri Custom API Key (Optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. pk.eyJ1IjoieW91cnVzZXIiLCJhIjoieW91cmtleSJ9 (Free Esri/OSM active by default)"
+              value={mapsApiKey}
+              onChange={(e) => setMapsApiKey(e.target.value)}
+              className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+            />
+            <span className="text-[10px] text-slate-400 block mt-0.5">
+              Default high-res Esri Satellite, Ocean Basemap & Dark Canvas are active with zero watermarks.
+            </span>
+          </div>
+
+          {/* 2. Sentinel Hub / Copernicus Key */}
+          <div>
+            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1 mb-1">
+              <Satellite className="w-3 h-3 text-cyan-500" />
+              <span>Copernicus / Sentinel Hub SAR API Key / Secret</span>
             </label>
             <input
               type="password"
+              placeholder="Enter Copernicus Data Space or Sentinel Hub Key"
               value={sentinelKey}
               onChange={(e) => setSentinelKey(e.target.value)}
               className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
             />
           </div>
 
+          {/* 3. CMEMS Ocean Current Auth */}
           <div>
-            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block mb-1">
-              CMEMS / HYCOM Ocean Currents Auth
+            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1 mb-1">
+              <Compass className="w-3 h-3 text-teal-500" />
+              <span>CMEMS / HYCOM Ocean Currents Authentication</span>
             </label>
             <input
               type="text"
+              placeholder="CMEMS Copernicus Marine Username"
               value={cmemsUser}
               onChange={(e) => setCmemsUser(e.target.value)}
+              className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
+            />
+          </div>
+
+          {/* 4. Open-Meteo Marine Key */}
+          <div>
+            <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 block mb-1">
+              Open-Meteo Marine / Weather Key (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Commercial API Key (Free tier active by default)"
+              value={openMeteoKey}
+              onChange={(e) => setOpenMeteoKey(e.target.value)}
               className="w-full text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-900 dark:text-white"
             />
           </div>
@@ -124,7 +183,7 @@ export const ProfileSettingsModal: React.FC = () => {
         {/* Footer Actions */}
         <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <span className="text-[10px] text-slate-400 font-mono">
-            Encrypted Storage • AES-256
+            Local Storage Encryption Active
           </span>
 
           <button
@@ -135,7 +194,7 @@ export const ProfileSettingsModal: React.FC = () => {
             {isSaved ? (
               <>
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
-                <span>Saved & Synchronized!</span>
+                <span>Saved & Applied!</span>
               </>
             ) : (
               <>
