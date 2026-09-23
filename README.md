@@ -159,6 +159,42 @@ npm run dev
 
 ---
 
+## 🚀 Cloud Deployment Guide
+
+### Option A: Deploy Backend on Render
+
+1. Go to [Render Dashboard](https://dashboard.render.com/) and click **New +** → **Blueprint** (or **Web Service**).
+2. Connect your GitHub repository: `https://github.com/somprakaashyadav-stack/SlickTrace.V2`.
+3. If using **Blueprint**, Render will automatically detect the [`render.yaml`](render.yaml) file and configure everything.
+4. If setting up manually:
+   - **Type**: Web Service
+   - **Root Directory**: `backend`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Environment Variables**:
+     - `PORT`: `10000`
+     - `CORS_ORIGINS`: `*`
+     - `DATABASE_PATH`: `data/slicktrace.duckdb`
+5. Click **Deploy Web Service**. Once deployed, copy your Render service URL (e.g., `https://slicktrace-backend.onrender.com`).
+
+---
+
+### Option B: Deploy Frontend on Vercel
+
+1. Go to [Vercel Dashboard](https://vercel.com/new) and click **Import** next to your GitHub repository `SlickTrace.V2`.
+2. Configure the project:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click *Edit* and select `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+3. Expand **Environment Variables** and add:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://<your-render-app>.onrender.com/api` *(or your Render backend URL + `/api`)*
+4. Click **Deploy**. Vercel will build and assign an instant production URL with automatic SSL and CDN caching!
+
+---
+
 ## 📜 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

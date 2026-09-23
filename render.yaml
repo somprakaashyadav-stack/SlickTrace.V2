@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: slicktrace-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_PATH
+        value: data/slicktrace.duckdb
+      - key: HOST
+        value: 0.0.0.0
