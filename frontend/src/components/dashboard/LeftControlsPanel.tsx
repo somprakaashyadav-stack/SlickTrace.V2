@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, RefreshCw, Play, Sparkles, Satellite } from 'lucide-react';
+import { Calendar, RefreshCw, Play, Sparkles, Satellite, Clock } from 'lucide-react';
 import { useIncident } from '../../context/IncidentContext';
 
 export const LeftControlsPanel: React.FC = () => {
@@ -17,11 +17,20 @@ export const LeftControlsPanel: React.FC = () => {
     setConfidenceThreshold,
     filterLookAlikes,
     setFilterLookAlikes,
+    setTimelineProgress,
     showToast
   } = useIncident();
 
   const [selectedSector, setSelectedSector] = useState(4);
   const [modelType, setModelType] = useState('Lagrangian Model (OpenDrift OpenOil)');
+  const [customTimestamp, setCustomTimestamp] = useState(activeIncident.detectionDate);
+
+  const timestampPresets = [
+    { label: 'T0 (Detection)', time: '2024-11-25 22:30 UTC', progress: 100 },
+    { label: 'T-6h (Mid Drift)', time: '2024-11-25 16:30 UTC', progress: 80 },
+    { label: 't₀ (Discharge Origin)', time: '2024-11-25 10:45 UTC', progress: 65 },
+    { label: 'T-24h (Initial Ping)', time: '2024-11-24 22:30 UTC', progress: 25 },
+  ];
 
   const handleSectorChange = (val: number) => {
     setSelectedSector(val);
@@ -35,6 +44,12 @@ export const LeftControlsPanel: React.FC = () => {
   const handleSatelliteChange = (sat: string) => {
     setSelectedSatellite(sat);
     showToast(`🛰️ Active Satellite Sensor updated: ${sat}`);
+  };
+
+  const handleSelectPresetTime = (preset: typeof timestampPresets[0]) => {
+    setCustomTimestamp(preset.time);
+    setTimelineProgress(preset.progress);
+    showToast(`⏱️ Timeline synced to ${preset.label} [${preset.time}]`);
   };
 
   return (
@@ -83,19 +98,48 @@ export const LeftControlsPanel: React.FC = () => {
             </select>
           </div>
 
-          {/* 2. Detection Date & Swath Time */}
+          {/* 2. Interactive Acquisition Timestamp */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              Acquisition Timestamp
-            </label>
-            <div className="relative">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-500" />
+                <span>Acquisition Timestamp</span>
+              </label>
+              <span className="text-[10px] font-mono text-cyan-600 dark:text-cyan-400">
+                Interactive Sync
+              </span>
+            </div>
+
+            <div className="relative mb-1.5">
               <input
                 type="text"
-                readOnly
-                value={activeIncident.detectionDate}
-                className="w-full text-xs font-mono font-medium bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md p-1.5 pr-8 text-slate-900 dark:text-white"
+                value={customTimestamp}
+                onChange={(e) => {
+                  setCustomTimestamp(e.target.value);
+                  showToast(`Acquisition time adjusted: ${e.target.value}`);
+                }}
+                className="w-full text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md p-1.5 pr-8 text-slate-900 dark:text-white focus:ring-1 focus:ring-blue-500"
+                placeholder="YYYY-MM-DD HH:MM UTC"
               />
               <Calendar className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2 pointer-events-none" />
+            </div>
+
+            {/* Quick Time Jump Chips */}
+            <div className="flex flex-wrap gap-1">
+              {timestampPresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => handleSelectPresetTime(preset)}
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-mono transition cursor-pointer border ${
+                    customTimestamp === preset.time
+                      ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-2xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
             </div>
           </div>
 
