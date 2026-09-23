@@ -87,43 +87,30 @@ def init_db():
     conn.close()
 
 def seed_sample_cadastre_data(conn):
-    """Seed real-world representative Marine Cadastre records for Gulf of Mexico & Malacca"""
+    """Seed real-world representative AIS records for Indian EEZ (Mumbai High) & international corridors"""
     records = [
-        # Vessel PA2017 (MT NORTH STAR) - Culprit Tanker
-        ("235109785", "2024-11-24 08:00:00", 28.58, -90.35, 14.6, 128, 128, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 10:30:00", 28.52, -90.25, 14.2, 130, 130, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 12:15:00", 28.472, -90.165, 4.8, 131, 131, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Restricted Maneuverability", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 12:30:00", 28.468, -90.158, 2.3, 132, 132, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Restricted Maneuverability", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 14:15:00", 28.43, -90.09, 3.4, 135, 135, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 17:00:00", 28.36, -89.96, 13.8, 134, 134, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
-        ("235109785", "2024-11-24 21:00:00", 28.24, -89.78, 14.4, 135, 135, "Vessel PA2017", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
+        # MT Sagar Ratna (Culprit Crude Oil Tanker in Mumbai High EEZ)
+        ("419001420", "2024-11-24 08:00:00", 19.65, 71.02, 14.6, 130, 130, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 10:30:00", 19.58, 71.10, 14.2, 132, 132, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 12:15:00", 19.528, 71.175, 4.8, 135, 135, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Restricted Maneuverability", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 12:30:00", 19.522, 71.182, 2.3, 135, 135, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Restricted Maneuverability", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 14:15:00", 19.49, 71.22, 3.4, 138, 138, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 17:00:00", 19.40, 71.32, 13.8, 135, 135, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
+        ("419001420", "2024-11-24 21:00:00", 19.28, 71.45, 14.4, 136, 136, "MT Sagar Ratna", "9412038", "V2AB8", "Crude Oil Tanker", "Underway using engine", 274, 48, 14.8, "Crude Oil"),
         
-        # Vessel DA80061 (Chemical Tanker)
-        ("211832000", "2024-11-24 09:00:00", 28.62, -90.28, 13.2, 140, 140, "Vessel DA80061", "9238471", "DLBX", "Chemical Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
-        ("211832000", "2024-11-24 13:18:00", 28.51, -90.12, 10.6, 142, 142, "Vessel DA80061", "9238471", "DLBX", "Chemical Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
-        ("211832000", "2024-11-24 17:30:00", 28.39, -89.95, 12.8, 141, 141, "Vessel DA80061", "9238471", "DLBX", "Chemical Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
+        # MT Al-Zubair (Chemical Tanker)
+        ("470128000", "2024-11-24 08:00:00", 19.75, 70.90, 13.2, 140, 140, "MT Al-Zubair", "9588231", "A6AB4", "Chemical / Oil Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
+        ("470128000", "2024-11-24 12:30:00", 19.60, 71.05, 13.1, 140, 140, "MT Al-Zubair", "9588231", "A6AB4", "Chemical / Oil Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
+        ("470128000", "2024-11-24 16:00:00", 19.45, 71.20, 13.0, 142, 142, "MT Al-Zubair", "9588231", "A6AB4", "Chemical / Oil Tanker", "Underway", 182, 32, 11.2, "Chemicals"),
 
-        # Vessel DA80688 (Bulk Carrier)
-        ("352001920", "2024-11-24 10:00:00", 28.68, -90.20, 14.4, 155, 155, "Vessel DA80688", "9518290", "3E219", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
-        ("352001920", "2024-11-24 14:05:00", 28.48, -90.04, 8.5, 155, 155, "Vessel DA80688", "9518290", "3E219", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
-        ("352001920", "2024-11-24 18:10:00", 28.28, -89.88, 13.3, 154, 154, "Vessel DA80688", "9518290", "3E219", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
+        # MV Bharat Pride (Bulk Carrier)
+        ("419000850", "2024-11-24 08:00:00", 19.80, 71.20, 11.5, 150, 150, "MV Bharat Pride", "9344198", "AWXY", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
+        ("419000850", "2024-11-24 12:30:00", 19.55, 71.40, 11.6, 150, 150, "MV Bharat Pride", "9344198", "AWXY", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
+        ("419000850", "2024-11-24 18:00:00", 19.20, 71.65, 11.4, 152, 152, "MV Bharat Pride", "9344198", "AWXY", "Bulk Carrier", "Underway", 225, 32, 12.5, "Dry Bulk"),
 
-        # Vessel FA2033 (Container)
-        ("477123900", "2024-11-24 11:00:00", 28.75, -89.70, 16.2, 200, 200, "Vessel FA2033", "9398822", "VRGT6", "Container Ship", "Underway", 294, 38, 13.0, "Containers"),
-        ("477123900", "2024-11-24 15:30:00", 28.30, -89.50, 14.0, 200, 200, "Vessel FA2033", "9398822", "VRGT6", "Container Ship", "Underway", 294, 38, 13.0, "Containers"),
-
-        # Vessel DA89122 (Cargo)
-        ("316024000", "2024-11-24 12:00:00", 28.60, -89.40, 15.0, 180, 180, "Vessel DA89122", "9283711", "CFD21", "Cargo Vessel", "Underway", 190, 28, 9.5, "General Cargo"),
-        ("316024000", "2024-11-24 18:00:00", 28.10, -89.40, 14.8, 180, 180, "Vessel DA89122", "9283711", "CFD21", "Cargo Vessel", "Underway", 190, 28, 9.5, "General Cargo"),
-
-        # Vessel DA89607 (Container)
-        ("228381000", "2024-11-24 10:00:00", 28.80, -89.30, 17.5, 160, 160, "Vessel DA89607", "9182741", "FNJK", "Container Ship", "Underway", 260, 32, 12.0, "Containers"),
-        ("228381000", "2024-11-24 16:00:00", 28.20, -89.10, 17.2, 160, 160, "Vessel DA89607", "9182741", "FNJK", "Container Ship", "Underway", 260, 32, 12.0, "Containers"),
-
-        # Vessel FA2023 (Products Tanker)
-        ("636015000", "2024-11-24 09:30:00", 28.65, -90.25, 14.0, 145, 145, "Vessel FA2023", "9372819", "A8LK2", "Oil Products Tanker", "Underway", 210, 32, 11.5, "Refined Fuel"),
-        ("636015000", "2024-11-24 13:30:00", 28.45, -90.05, 9.0, 145, 145, "Vessel FA2023", "9372819", "A8LK2", "Oil Products Tanker", "Underway", 210, 32, 11.5, "Refined Fuel"),
-        ("636015000", "2024-11-24 17:30:00", 28.25, -89.85, 13.5, 145, 145, "Vessel FA2023", "9372819", "A8LK2", "Oil Products Tanker", "Underway", 210, 32, 11.5, "Refined Fuel")
+        # MT Petro Gulf (Gujarat Vadinar Corridor)
+        ("419000980", "2024-11-25 12:00:00", 22.65, 69.10, 12.5, 120, 120, "MT Petro Gulf", "9482110", "AUVC", "Product Tanker", "Underway", 180, 30, 10.4, "Petroleum"),
+        ("419000980", "2024-11-25 18:00:00", 22.58, 69.22, 3.2, 125, 125, "MT Petro Gulf", "9482110", "AUVC", "Product Tanker", "Restricted Maneuverability", 180, 30, 10.4, "Petroleum")
     ]
 
     conn.executemany("""
@@ -133,19 +120,19 @@ def seed_sample_cadastre_data(conn):
 def seed_sample_incidents(conn):
     conn.execute("""
         INSERT INTO incidents VALUES (
-            'INC-GOM-2024-08',
-            'SPILL-DELTA-08 (Mississippi Canyon Block 42)',
-            'Gulf of Mexico — EEZ Sector 4',
+            'INC-IN-MUMBAI-2024',
+            'SPILL-MUMBAI-HIGH-01 (Western Offshore Basin)',
+            'Arabian Sea — Mumbai High EEZ (India)',
             'Critical Alert',
             '2024-11-25 22:30 UTC',
-            'Sentinel-1B (SAR C-Band GRD)',
-            'Ascending Pass #142 (IW Mode)',
+            'ISRO EOS-04 (RISAT-1A SAR) & Sentinel-1B',
+            'Ascending Pass #142 (IW C-Band Dual-Pol)',
             '10m Spatial Resolution (VV+VH)',
-            28.38, -89.92,
+            19.42, 71.32,
             48.3, 38.6,
             1250, 34,
             94.2, 25.8,
-            28.465, -90.155,
+            19.52, 71.18,
             '2024-11-24 12:30 UTC'
         );
     """)

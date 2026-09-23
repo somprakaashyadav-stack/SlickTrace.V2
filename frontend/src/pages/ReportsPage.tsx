@@ -243,15 +243,15 @@ export const ReportsPage: React.FC = () => {
               <div className="bg-slate-50 border border-slate-300 rounded-lg p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">Target Vessel</span>
-                  <strong className="text-slate-900 text-sm">{culprit.name}</strong>
+                  <strong className="text-slate-900 text-sm">{dossierData?.target_vessel?.name || culprit.name}</strong>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">MMSI / IMO</span>
-                  <strong className="text-slate-900 font-mono">{culprit.mmsi} / {culprit.imo}</strong>
+                  <strong className="text-slate-900 font-mono">{dossierData?.target_vessel?.mmsi || culprit.mmsi} / {dossierData?.target_vessel?.imo || culprit.imo}</strong>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">Flag / Type</span>
-                  <strong className="text-slate-900">{culprit.flag} ({culprit.type})</strong>
+                  <strong className="text-slate-900">{dossierData?.target_vessel?.flag || culprit.flag} ({dossierData?.target_vessel?.vessel_type || culprit.type})</strong>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">Attribution Certainty</span>
@@ -262,7 +262,7 @@ export const ReportsPage: React.FC = () => {
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-900 space-y-1">
                 <strong className="block font-bold">Operative Action Command:</strong>
                 <p className="leading-relaxed">
-                  The target vessel <em>{culprit.name}</em> has been conclusively pinpointed as the discharge source using combined Sentinel-1 SAR dampening and backward OpenDrift Lagrangian hindcast. The vessel approached within <strong>{culprit.minDistanceM} meters</strong> of the calculated discharge origin coordinates at the exact release timestamp, followed by an intentional <strong>45-minute AIS blackout</strong>.
+                  The target vessel <em>{dossierData?.target_vessel?.name || culprit.name}</em> has been conclusively pinpointed as the discharge source using combined {activeIncident.satelliteSensor} radar dampening and backward OpenDrift Lagrangian hindcast. The vessel approached within <strong>{culprit.minDistanceM} meters</strong> of the calculated discharge origin coordinates ({activeIncident.slick.originPoint ? `${activeIncident.slick.originPoint[0].toFixed(2)}°N, ${activeIncident.slick.originPoint[1].toFixed(2)}°E` : 'origin'}) at the exact release timestamp, followed by an intentional <strong>45-minute AIS blackout</strong>.
                 </p>
               </div>
             </section>
@@ -270,25 +270,35 @@ export const ReportsPage: React.FC = () => {
             {/* Tactical Intercept Vector */}
             <section className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-1">
-                2. Tactical Interception Vector & Coast Guard Cutter Dispatch
+                2. Tactical Interception Vector & Coast Guard Patrol Dispatch
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                   <span className="text-[10px] uppercase font-bold text-blue-800 block">Assigned Patrol Cutter</span>
-                  <div className="font-bold text-slate-900 text-sm mt-0.5">USCGC DAUNTLESS (WMEC-624)</div>
-                  <div className="text-[11px] text-slate-600 mt-1">Station: USCG Sector New Orleans</div>
+                  <div className="font-bold text-slate-900 text-sm mt-0.5">
+                    {dossierData?.intercept_vector?.patrol_cutter_assigned || (activeIncident.id.includes('IN-') ? 'ICGS SAMRAT (OPV-02)' : 'USCGC DAUNTLESS (WMEC-624)')}
+                  </div>
+                  <div className="text-[11px] text-slate-600 mt-1">
+                    Station: {activeIncident.id.includes('IN-') ? 'Indian Coast Guard Region (West) Mumbai' : 'USCG Sector New Orleans'}
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                   <span className="text-[10px] uppercase font-bold text-blue-800 block">Rendezvous Intercept Point</span>
-                  <div className="font-bold text-slate-900 text-sm mt-0.5">28.180°N, -89.650°W</div>
-                  <div className="text-[11px] text-slate-600 mt-1">Intercept ETA: 1 hour 45 minutes</div>
+                  <div className="font-bold text-slate-900 text-sm mt-0.5">
+                    {dossierData?.intercept_vector?.rendezvous_coordinates || `${activeIncident.center[0].toFixed(3)}°N, ${activeIncident.center[1].toFixed(3)}°E`}
+                  </div>
+                  <div className="text-[11px] text-slate-600 mt-1">
+                    Intercept ETA: {dossierData?.intercept_vector?.eta_to_intercept || '1 hour 30 minutes'}
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
                   <span className="text-[10px] uppercase font-bold text-blue-800 block">Legal Enforcement Authority</span>
-                  <div className="font-bold text-slate-900 text-sm mt-0.5">33 U.S.C. § 1321 & MARPOL</div>
+                  <div className="font-bold text-slate-900 text-sm mt-0.5">
+                    {activeIncident.id.includes('IN-') ? 'Merchant Shipping Act 1958 & MARPOL' : '33 U.S.C. § 1321 & MARPOL'}
+                  </div>
                   <div className="text-[11px] text-slate-600 mt-1">UNCLOS Article 220 Enforcement</div>
                 </div>
               </div>
@@ -318,13 +328,13 @@ export const ReportsPage: React.FC = () => {
             <div className="border-b-2 border-emerald-900 pb-4 flex items-start justify-between gap-4">
               <div>
                 <div className="text-[10px] tracking-widest font-extrabold uppercase text-emerald-800">
-                  ENVIRONMENTAL PROTECTION AGENCY & NOAA DISASTER RESPONSE
+                  {activeIncident.id.includes('IN-') ? 'INDIAN COAST GUARD POLLUTION RESPONSE & INCOIS MODELING' : 'ENVIRONMENTAL PROTECTION AGENCY & NOAA DISASTER RESPONSE'}
                 </div>
                 <h1 className="text-xl font-black tracking-tight text-slate-900 mt-1">
                   EMERGENCY OIL SPILL CONTAINMENT & CLEANUP TACTICAL PLAN
                 </h1>
                 <div className="text-xs text-slate-600 font-mono mt-1">
-                  TACTICAL ASSESSMENT REF: TIER-2-CLEANUP-{activeIncident.id} • MISSISSIPPI CANYON SECTOR
+                  TACTICAL ASSESSMENT REF: TIER-2-CLEANUP-{activeIncident.id} • {activeIncident.locationName.toUpperCase()}
                 </div>
               </div>
 
@@ -333,12 +343,12 @@ export const ReportsPage: React.FC = () => {
                   CLEANUP DIRECTIVE
                 </div>
                 <div className="text-[11px] text-slate-500 font-mono mt-1">
-                  Weathering Model: NOAA PyGNOME
+                  Weathering Model: {activeIncident.weathering?.weatheringEngine || 'INCOIS SARAT & OpenDrift'}
                 </div>
               </div>
             </div>
 
-            {/* Physical Slick Characterization (Sheen vs Thick) */}
+            {/* Physical Slick Characterization */}
             <section className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-1">
                 1. Slick Physical Dimensions & Bonn Characterization
@@ -408,10 +418,18 @@ export const ReportsPage: React.FC = () => {
                     Deflection Booming Perimeter:
                   </span>
                   <div className="font-mono text-slate-700 space-y-1">
-                    <div>• Sector North: 28.420°N, -90.060°W</div>
-                    <div>• Sector East: 28.440°N, -89.960°W</div>
-                    <div>• Sector South: 28.410°N, -89.840°W</div>
-                    <div>• Sector West: 28.350°N, -89.810°W</div>
+                    {activeIncident.slick.coordinates && activeIncident.slick.coordinates.length >= 4 ? (
+                      activeIncident.slick.coordinates.slice(0, 4).map((pt, idx) => (
+                        <div key={idx}>• Point {idx + 1}: {pt[0].toFixed(3)}°N, {pt[1].toFixed(3)}°E</div>
+                      ))
+                    ) : (
+                      <>
+                        <div>• Sector North: {activeIncident.center[0] + 0.05}°N, {activeIncident.center[1] - 0.04}°E</div>
+                        <div>• Sector East: {activeIncident.center[0] + 0.07}°N, {activeIncident.center[1] + 0.06}°E</div>
+                        <div>• Sector South: {activeIncident.center[0] - 0.04}°N, {activeIncident.center[1] + 0.08}°E</div>
+                        <div>• Sector West: {activeIncident.center[0] - 0.08}°N, {activeIncident.center[1] - 0.08}°E</div>
+                      </>
+                    )}
                   </div>
                   <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-200">
                     Total Boom Length Required: <strong>4,500 meters</strong> (J-Configuration).
@@ -424,11 +442,11 @@ export const ReportsPage: React.FC = () => {
                   </span>
                   <ul className="list-disc list-inside space-y-1 text-slate-700">
                     <li>4 Oleophilic Brush-Drum Skimmers dispatched (Desmi Ro-Clean DBD-50).</li>
-                    <li>Subsea Dispersant Injection (SSDI) pre-authorized under Tier 2 protocols.</li>
-                    <li>Exclusion booms pre-positioned across Breton Sound and Pass-a-Loutre mangrove passes.</li>
+                    <li>Type-III Oil Spill Dispersant (OSD) pre-authorized under National Oil Spill Disaster Contingency Plan (NOS-DCP).</li>
+                    <li>Exclusion booms pre-positioned across sensitive coastal inlets and mangrove sanctuaries.</li>
                   </ul>
                   <div className="text-[11px] text-red-600 font-semibold pt-1 border-t border-slate-200">
-                    Shoreline impact warning: Projected 36 hours to barrier islands.
+                    Shoreline impact warning: Projected 36 hours based on INCOIS high-resolution ocean current models.
                   </div>
                 </div>
               </div>
@@ -472,10 +490,10 @@ export const ReportsPage: React.FC = () => {
               </h3>
 
               <p className="text-xs leading-relaxed text-slate-700">
-                On <strong>{activeIncident.detectionDate}</strong>, European Space Agency Sentinel-1 satellite radar surveillance identified an offshore hydrocarbon discharge approximately 45 miles off the coast in the {activeIncident.locationName}. 
+                On <strong>{activeIncident.detectionDate}</strong>, satellite radar surveillance ({activeIncident.satelliteSensor}) identified an offshore hydrocarbon discharge approximately 45 nautical miles offshore in {activeIncident.locationName}. 
               </p>
               <p className="text-xs leading-relaxed text-slate-700">
-                Specialized hydrodynamic modeling and AIS ship tracking by maritime authorities have pinpointed the suspected vessel, <strong>{culprit.name}</strong>, which has been intercepted by the Coast Guard for inspection and judicial detention.
+                Specialized hydrodynamic modeling (INCOIS ROMS/SARAT) and AIS ship tracking by maritime authorities have pinpointed the suspected vessel, <strong>{culprit.name}</strong>, which has been intercepted by the Coast Guard for inspection and judicial detention.
               </p>
 
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs space-y-2 text-amber-950">
@@ -483,10 +501,10 @@ export const ReportsPage: React.FC = () => {
                   Key Public Safety Advisories:
                 </strong>
                 <ul className="list-disc list-inside space-y-1">
-                  <li><strong>Maritime Exclusion Zone:</strong> Commercial fishing vessels and private recreational crafts must maintain a 10-nautical-mile buffer zone around 28.38°N, -89.92°W.</li>
-                  <li><strong>Beach & Shoreline Status:</strong> All coastal public beaches and municipal recreational areas remain <strong>SAFE and OPEN</strong>. No hydrocarbon shoreline contact has occurred.</li>
-                  <li><strong>Seafood Safety:</strong> Commercial fisheries in adjacent sectors remain under continuous laboratory testing; no contamination of market seafood stocks has been observed.</li>
-                  <li><strong>Wildlife Reporting:</strong> Report any affected marine life or seabirds immediately to the National Response Center hotline: <strong>1-800-424-8802</strong>.</li>
+                  <li><strong>Maritime Exclusion Zone:</strong> Commercial fishing vessels and private recreational crafts must maintain a 10-nautical-mile buffer zone around {activeIncident.center[0].toFixed(2)}°N, {activeIncident.center[1].toFixed(2)}°E.</li>
+                  <li><strong>Beach & Shoreline Status:</strong> Coastal public beaches and municipal recreational areas remain <strong>SAFE and OPEN</strong>. No hydrocarbon shoreline contact has occurred.</li>
+                  <li><strong>Seafood Safety:</strong> Commercial fisheries in adjacent sectors remain under continuous testing; no contamination of market seafood stocks has been observed.</li>
+                  <li><strong>Emergency Hotline:</strong> Report any affected marine life or oil sightings immediately to the Maritime Emergency Hotline: <strong>{activeIncident.id.includes('IN-') ? '1554 (Indian Coast Guard)' : '1-800-424-8802 (NRC)'}</strong>.</li>
                 </ul>
               </div>
             </section>
@@ -501,7 +519,7 @@ export const ReportsPage: React.FC = () => {
                 <div className="p-3 bg-slate-50 border border-slate-300 rounded-lg">
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">Surveillance Method</span>
                   <strong className="text-slate-900 block mt-0.5">{activeIncident.satelliteSensor}</strong>
-                  <div className="text-[11px] text-slate-500 mt-1">Radar backscatter dampening</div>
+                  <div className="text-[11px] text-slate-500 mt-1">SAR backscatter dampening & Polarimetric Analysis</div>
                 </div>
 
                 <div className="p-3 bg-slate-50 border border-slate-300 rounded-lg">
@@ -565,12 +583,12 @@ export const ReportsPage: React.FC = () => {
                   <strong className="text-slate-900 font-mono">{culprit.imo} / {culprit.mmsi}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-semibold text-slate-500 block">Registered Owner</span>
-                  <strong className="text-slate-900">Apex Maritime Holdings Ltd.</strong>
+                  <span className="text-[10px] uppercase font-semibold text-slate-500 block">Flag State</span>
+                  <strong className="text-slate-900">{culprit.flag}</strong>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-semibold text-slate-500 block">P&I Mutual Club</span>
-                  <strong className="text-purple-700 font-semibold">The Standard Club P&I</strong>
+                  <strong className="text-purple-700 font-semibold">The Standard Club P&I / Gard</strong>
                 </div>
               </div>
 
@@ -580,10 +598,10 @@ export const ReportsPage: React.FC = () => {
                   Statutory Charges & International Conventions Violated:
                 </span>
                 <ul className="list-disc list-inside space-y-1">
-                  <li><strong>MARPOL Annex I, Regulation 15:</strong> Prohibited discharge of oily bilge water and tank washings without 15 ppm filtration within special maritime zones.</li>
-                  <li><strong>MARPOL Annex I, Regulation 17:</strong> Fraudulent omission and falsification of entries in the official Oil Record Book (ORB).</li>
+                  <li><strong>Merchant Shipping Act 1958 (Part XIA):</strong> Prohibited discharge of oily bilge water and tank washings without 15 ppm filtration within Indian EEZ maritime zones.</li>
+                  <li><strong>MARPOL 73/78 Annex I, Regulation 15 & 17:</strong> Fraudulent omission and falsification of entries in the official Oil Record Book (ORB).</li>
                   <li><strong>SOLAS Chapter V, Regulation 19:</strong> Willful and unlawful deactivation of Automatic Identification System (AIS) Class A transponder during vessel transit.</li>
-                  <li><strong>33 U.S. Code § 1321 (Clean Water Act):</strong> Discharge of harmful quantities of oil into navigable waters of the Exclusive Economic Zone.</li>
+                  <li><strong>Environment (Protection) Act 1986 / Clean Water Standards:</strong> Unlawful discharge of harmful quantities of oil into navigable waters.</li>
                 </ul>
               </div>
             </section>
@@ -606,26 +624,26 @@ export const ReportsPage: React.FC = () => {
                 <tbody className="divide-y divide-slate-200 text-slate-700">
                   <tr>
                     <td className="py-2 px-3 font-mono">24 Nov 12:15</td>
-                    <td className="py-2 px-3">Marine Cadastre AIS</td>
+                    <td className="py-2 px-3">DGLL National AIS Network</td>
                     <td className="py-2 px-3">Vessel {culprit.name} decelerated abruptly from 14.5 to 2.3 kn</td>
                     <td className="py-2 px-3 font-semibold text-red-600">Discharge Speed Anomaly</td>
                   </tr>
                   <tr>
                     <td className="py-2 px-3 font-mono">24 Nov 12:30</td>
-                    <td className="py-2 px-3">OpenDrift Lagrangian Solver</td>
-                    <td className="py-2 px-3">Discharge origin pinpointed (28.465°N, -90.155°W; CPA: 626m)</td>
+                    <td className="py-2 px-3">OpenDrift & INCOIS ROMS</td>
+                    <td className="py-2 px-3">Discharge origin ({activeIncident.slick.originPoint ? `${activeIncident.slick.originPoint[0].toFixed(2)}°N, ${activeIncident.slick.originPoint[1].toFixed(2)}°E` : 'origin'}; CPA: {culprit.minDistanceM}m)</td>
                     <td className="py-2 px-3 font-semibold text-red-600">Spatio-Temporal Coincidence</td>
                   </tr>
                   <tr>
                     <td className="py-2 px-3 font-mono">24 Nov 12:45</td>
-                    <td className="py-2 px-3">USCG Coast Station</td>
+                    <td className="py-2 px-3">ICG Radar Chain (CRCN)</td>
                     <td className="py-2 px-3">Vessel silenced AIS transponder for 45 continuous minutes</td>
                     <td className="py-2 px-3 font-semibold text-amber-600">Dark Ship Concealment</td>
                   </tr>
                   <tr>
                     <td className="py-2 px-3 font-mono">25 Nov 22:30</td>
-                    <td className="py-2 px-3">ESA Sentinel-1 SAR</td>
-                    <td className="py-2 px-3">Backscatter depression -7.8 dB; 48.3 km² thick mineral oil</td>
+                    <td className="py-2 px-3">{activeIncident.satelliteSensor}</td>
+                    <td className="py-2 px-3">Backscatter depression -7.8 dB; {activeIncident.slick.areaKm2} km² thick mineral oil</td>
                     <td className="py-2 px-3 font-semibold text-blue-600">Physical Verification</td>
                   </tr>
                 </tbody>
@@ -638,10 +656,10 @@ export const ReportsPage: React.FC = () => {
                 Preliminary Civil Liability & Penalty Assessment:
               </strong>
               <div className="text-base font-extrabold text-purple-900 font-mono">
-                $14,850,000 USD
+                ₹124.50 Crores / $14,850,000 USD
               </div>
               <p className="text-[11px] text-purple-800">
-                Calculated on basis of 1,250 m³ discharge volume: Clean Water Act statutory penalty ($2,200/barrel), emergency containment booming mobilization costs, NOAA Natural Resource Damage Assessment (NRDA), and Coast Guard cutter operational costs.
+                Calculated on basis of {activeIncident.slick.estimatedVolumeM3.toLocaleString()} m³ discharge volume: Merchant Shipping Act statutory liability, emergency containment booming mobilization costs, INCOIS/NIO Natural Resource Damage Assessment, and Coast Guard cutter operational costs.
               </p>
             </div>
           </>
@@ -653,7 +671,9 @@ export const ReportsPage: React.FC = () => {
         <section className="pt-6 border-t border-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-700">
           <div>
             <span className="block font-semibold">Authenticated Maritime Authority:</span>
-            <span className="text-slate-900 font-bold">Lt. Cmdr. Sarah Jenkins, USCG / Port State Control</span>
+            <span className="text-slate-900 font-bold">
+              {activeIncident.id.includes('IN-') ? 'Inspector General, Indian Coast Guard / DGS Port State Control' : 'Lt. Cmdr. Sarah Jenkins, USCG / Port State Control'}
+            </span>
             <span className="block text-[11px] text-slate-500">Autonomous Evidence Verification Division • SlickTrace V2</span>
           </div>
 
