@@ -1,5 +1,9 @@
-const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const API_BASE_URL = envApiUrl.endsWith('/') ? envApiUrl.slice(0, -1) : envApiUrl;
+const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+let cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+if (!cleanUrl.endsWith('/api')) {
+  cleanUrl = `${cleanUrl}/api`;
+}
+const API_BASE_URL = cleanUrl;
 
 export interface DetectionPayload {
   sensor: string;
