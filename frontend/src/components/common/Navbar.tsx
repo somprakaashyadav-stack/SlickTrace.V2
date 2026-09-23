@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useIncident } from '../../context/IncidentContext';
 import { ThemeToggle } from './ThemeToggle';
-import { MethodologyFlowchartModal } from './MethodologyFlowchartModal';
+import { PlatformGuideModal } from './PlatformGuideModal';
 import type { PageId } from '../../types';
 
 export const Navbar: React.FC = () => {
@@ -26,7 +26,7 @@ export const Navbar: React.FC = () => {
   } = useIncident();
 
   const [showIncidentMenu, setShowIncidentMenu] = useState(false);
-  const [showFlowchart, setShowFlowchart] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   const navItems: { id: PageId; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
@@ -131,16 +131,16 @@ export const Navbar: React.FC = () => {
           })}
         </nav>
 
-        {/* Right Section: Theme Toggle & Profile Button */}
+        {/* Right Section: Platform Guide, Theme Toggle & Profile Button */}
         <div className="flex items-center gap-2.5">
-          {/* Methodology Flowchart Modal Trigger */}
+          {/* Platform User Guide Trigger */}
           <button
             type="button"
-            onClick={() => setShowFlowchart(true)}
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-cyan-400 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer shadow-2xs transition"
-            title="View 8-Step Scientific Methodology Flowchart & Architecture"
+            onClick={() => setShowGuide(true)}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-cyan-400 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer shadow-xs transition"
+            title="Open Platform User Guide, Operator SOPs & Architecture Details"
           >
-            <span>📐 Methodology Flowchart</span>
+            <span>📖 Platform Guide</span>
           </button>
 
           {/* Theme Toggle Pill */}
@@ -160,10 +160,10 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Methodology Flowchart Modal */}
-      <MethodologyFlowchartModal
-        isOpen={showFlowchart}
-        onClose={() => setShowFlowchart(false)}
+      {/* Platform User Guide Modal */}
+      <PlatformGuideModal
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
       />
     </header>
   );
